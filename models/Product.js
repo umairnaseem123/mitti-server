@@ -28,6 +28,13 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    // Optional "before discount" price. When set and higher than `price`,
+    // the frontend shows it struck through next to the current price with
+    // a "% OFF" badge. Leave blank/0 for products with no discount.
+    originalPrice: {
+      type: Number,
+      default: null,
+    },
     images: {
       type: [String],
       default: [],

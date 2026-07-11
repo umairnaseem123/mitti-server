@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {
   getProducts,
+  getFeaturedReviews,
   getProductById,
   createProduct,
   updateProduct,
@@ -14,6 +15,11 @@ const { admin } = require("../middleware/adminMiddleware");
 
 // Public routes (anyone can view products, search works via ?search=name&category=Concrete)
 router.get("/", getProducts);
+
+// IMPORTANT: this must come before "/:id" — otherwise Express treats
+// "reviews" as a product id and this route never gets hit.
+router.get("/reviews/featured", getFeaturedReviews);
+
 router.get("/:id", getProductById);
 
 // Public route - customers can add a review

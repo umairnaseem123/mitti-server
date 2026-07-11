@@ -21,6 +21,35 @@ const getProducts = async (req, res) => {
   }
 };
 
+// GET a handful of real, high-rated reviews pulled across every product —
+// used for the "What Our Customers Say" section on the homepage.
+// This route MUST be registered before "/:id" in productRoutes.js, or
+// Express will try to treat "reviews" as a product id and 404/error.
+const getFeaturedReviews = async (req, res) => {
+  try {
+    const results = await Product.aggregate([
+      { $unwind: "$reviews" },
+      { $match: { "reviews.rating": { $gte: 4 } } },
+      { $sort: { "reviews.createdAt": -1 } },
+      { $limit: 9 },
+      {
+        $project: {
+          _id: 0,
+          productId: "$_id",
+          productName: "$name",
+          customerName: "$reviews.customerName",
+          rating: "$reviews.rating",
+          comment: "$reviews.comment",
+          createdAt: "$reviews.createdAt",
+        },
+      },
+    ]);
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // GET single product
 const getProductById = async (req, res) => {
   try {
@@ -37,12 +66,27 @@ const getProductById = async (req, res) => {
 // CREATE product
 const createProduct = async (req, res) => {
   try {
-    const { name, description, price, images, category, stock, faqs } =
-      req.body;
+    const {
+      name,
+      description,
+      price,
+      originalPrice,
+      images,
+      category,
+      stock,
+      faqs,
+    } = req.body;
     const product = new Product({
       name,
       description,
       price,
+      // Only store originalPrice if it was actually provided and is a
+      // real discount (higher than the current price). Otherwise leave
+      // it null so no "before" price / badge shows on the frontend.
+      originalPrice:
+        originalPrice && Number(originalPrice) > Number(price)
+          ? Number(originalPrice)
+          : null,
       images,
       category,
       stock,
@@ -58,9 +102,20 @@ const createProduct = async (req, res) => {
 // UPDATE product
 const updateProduct = async (req, res) => {
   try {
+    const updateData = { ...req.body };
+
+    // Same guard as createProduct: don't save a discount price that isn't
+    // actually higher than the current price.
+    if (
+      updateData.originalPrice &&
+      Number(updateData.originalPrice) <= Number(updateData.price)
+    ) {
+      updateData.originalPrice = null;
+    }
+
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true },
     );
     if (!updatedProduct) {
@@ -125,6 +180,7 @@ const addFaq = async (req, res) => {
 
 module.exports = {
   getProducts,
+  getFeaturedReviews,
   getProductById,
   createProduct,
   updateProduct,
