@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const sendNewProductEmail = require("../utils/sendProductEmail");
 
 // GET all products (supports search + category filter)
 const getProducts = async (req, res) => {
@@ -93,6 +94,10 @@ const createProduct = async (req, res) => {
       faqs: faqs || [],
     });
     const savedProduct = await product.save();
+
+    // Fire-and-forget: don't wait for the email to finish before responding
+    sendNewProductEmail(savedProduct);
+
     res.status(201).json(savedProduct);
   } catch (error) {
     res.status(400).json({ message: error.message });
