@@ -3,13 +3,15 @@ const Order = require("../models/Order");
 // CREATE order (customer checkout)
 const createOrder = async (req, res) => {
   try {
-    const { customer, items, totalAmount, paymentMethod } = req.body;
+    const { customer, items, totalAmount, paymentMethod, transactionId } =
+      req.body;
 
     const order = await Order.create({
       customer,
       items,
       totalAmount,
       paymentMethod,
+      transactionId: transactionId || null,
     });
 
     res.status(201).json(order);
