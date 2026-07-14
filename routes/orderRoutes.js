@@ -1,16 +1,18 @@
-const express = require("express");
+﻿const express = require("express");
 const router = express.Router();
 const {
   createOrder,
   getOrders,
   getOrderById,
   updateOrderStatus,
+  trackOrder,
 } = require("../controllers/orderController");
 const { protect } = require("../middleware/authMiddleware");
 const { admin } = require("../middleware/adminMiddleware");
 
-// Public route (customer places order, no login required)
+// Public routes (no login required)
 router.post("/", createOrder);
+router.post("/track", trackOrder);
 
 // Admin-only routes
 router.get("/", protect, admin, getOrders);
