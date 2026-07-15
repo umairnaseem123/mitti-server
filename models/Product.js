@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+﻿const mongoose = require("mongoose");
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -49,6 +49,10 @@ const productSchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
+    wishlistCount: {
+      type: Number,
+      default: 0,
+    },
     reviews: [reviewSchema],
     faqs: [faqSchema],
   },
@@ -56,3 +60,4 @@ const productSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Product", productSchema);
+

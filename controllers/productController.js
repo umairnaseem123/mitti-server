@@ -1,4 +1,4 @@
-const Product = require("../models/Product");
+﻿const Product = require("../models/Product");
 const sendNewProductEmail = require("../utils/sendProductEmail");
 
 // GET all products (supports search + category filter)
@@ -22,7 +22,7 @@ const getProducts = async (req, res) => {
   }
 };
 
-// GET a handful of real, high-rated reviews pulled across every product —
+// GET a handful of real, high-rated reviews pulled across every product â€”
 // used for the "What Our Customers Say" section on the homepage.
 // This route MUST be registered before "/:id" in productRoutes.js, or
 // Express will try to treat "reviews" as a product id and 404/error.
@@ -183,6 +183,25 @@ const addFaq = async (req, res) => {
   }
 };
 
+const toggleWishlistCount = async (req, res) => {
+  try {
+    const { action } = req.body; // "add" or "remove"
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    if (action === "remove") {
+      product.wishlistCount = Math.max(0, (product.wishlistCount || 0) - 1);
+    } else {
+      product.wishlistCount = (product.wishlistCount || 0) + 1;
+    }
+    await product.save();
+    res.status(200).json({ wishlistCount: product.wishlistCount });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getProducts,
   getFeaturedReviews,
@@ -192,4 +211,6 @@ module.exports = {
   deleteProduct,
   addReview,
   addFaq,
+  toggleWishlistCount,
 };
+
