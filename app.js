@@ -5,6 +5,7 @@ const productRoutes = require("./routes/productRoutes");
 const authRoutes = require("./routes/authRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
+const analyticsRoutes = require("./routes/analytics");
 // Stripe is disabled â€” not officially supported for Pakistan-based payouts.
 // Re-enable these two lines (and the app.use("/api/payment", ...) below)
 // once a local payment gateway (e.g. PayFast) is integrated instead.
@@ -17,7 +18,7 @@ const app = express();
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
-  })
+  }),
 );
 // Stripe webhook route disabled along with the rest of the payment flow.
 // app.post(
@@ -35,8 +36,8 @@ app.use("/api/settings", settingsRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/subscribers", subscriberRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api/analytics", analyticsRoutes);
 app.get("/", (req, res) => {
   res.send("Mitti API is running...");
 });
 module.exports = app;
-

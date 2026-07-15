@@ -7,3 +7,4 @@ uploads/*
 *.log
 npm-debug.log*
 .DS_Store
+config/mitti-analytics-key.json
