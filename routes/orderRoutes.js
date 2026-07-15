@@ -5,6 +5,7 @@ const {
   getOrders,
   getOrderById,
   updateOrderStatus,
+  getSalesAnalytics,
   trackOrder,
 } = require("../controllers/orderController");
 const { protect } = require("../middleware/authMiddleware");
@@ -15,8 +16,10 @@ router.post("/", createOrder);
 router.post("/track", trackOrder);
 
 // Admin-only routes
+router.get("/analytics/sales", protect, admin, getSalesAnalytics);
 router.get("/", protect, admin, getOrders);
 router.get("/:id", protect, admin, getOrderById);
 router.put("/:id", protect, admin, updateOrderStatus);
 
 module.exports = router;
+

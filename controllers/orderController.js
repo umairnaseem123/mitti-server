@@ -108,10 +108,76 @@ const trackOrder = async (req, res) => {
   }
 };
 
+const getSalesAnalytics = async (req, res) => {
+  try {
+    const orders = await Order.find({});
+
+    // Revenue by month (last 6 months, oldest to newest)
+    const monthlyMap = {};
+    orders.forEach((o) => {
+      const d = new Date(o.createdAt);
+      const key = `\${d.getFullYear()}-\${String(d.getMonth() + 1).padStart(2, "0")}`;
+      monthlyMap[key] = (monthlyMap[key] || 0) + o.totalAmount;
+    });
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const revenueByMonth = Object.keys(monthlyMap)
+      .sort()
+      .slice(-6)
+      .map((key) => {
+        const [year, month] = key.split("-");
+        return {
+          month: `\${monthNames[parseInt(month, 10) - 1]} \${year}`,
+          revenue: Math.round(monthlyMap[key]),
+        };
+      });
+
+    // Best-selling products by quantity sold
+    const productMap = {};
+    orders.forEach((o) => {
+      o.items.forEach((item) => {
+        if (!productMap[item.name]) {
+          productMap[item.name] = { name: item.name, qty: 0, revenue: 0 };
+        }
+        productMap[item.name].qty += item.qty;
+        productMap[item.name].revenue += item.price * item.qty;
+      });
+    });
+    const topProducts = Object.values(productMap)
+      .sort((a, b) => b.qty - a.qty)
+      .slice(0, 5);
+
+    // Order status breakdown
+    const statusCounts = { pending: 0, shipped: 0, delivered: 0 };
+    orders.forEach((o) => {
+      if (statusCounts[o.orderStatus] !== undefined) {
+        statusCounts[o.orderStatus]++;
+      }
+    });
+    const statusBreakdown = Object.entries(statusCounts).map(([status, count]) => ({
+      status: status.charAt(0).toUpperCase() + status.slice(1),
+      count,
+    }));
+
+    const totalRevenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+
+    res.status(200).json({
+      revenueByMonth,
+      topProducts,
+      statusBreakdown,
+      totalOrders: orders.length,
+      totalRevenue: Math.round(totalRevenue),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrders,
   getOrderById,
   updateOrderStatus,
+  getSalesAnalytics,
   trackOrder,
 };
+
