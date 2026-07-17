@@ -1,4 +1,4 @@
-﻿const Order = require("../models/Order");
+const Order = require("../models/Order");
 
 // CREATE order (customer checkout)
 const createOrder = async (req, res) => {
@@ -42,15 +42,19 @@ const getOrderById = async (req, res) => {
 };
 
 // UPDATE order status (admin only)
+// Also accepts courier / trackingNumber updates so the admin can save
+// shipping info independently from the status dropdowns.
 const updateOrderStatus = async (req, res) => {
   try {
-    const { orderStatus, paymentStatus } = req.body;
+    const { orderStatus, paymentStatus, courier, trackingNumber } = req.body;
     const order = await Order.findById(req.params.id);
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
     if (orderStatus) order.orderStatus = orderStatus;
     if (paymentStatus) order.paymentStatus = paymentStatus;
+    if (courier !== undefined) order.courier = courier;
+    if (trackingNumber !== undefined) order.trackingNumber = trackingNumber;
     const updatedOrder = await order.save();
     res.status(200).json(updatedOrder);
   } catch (error) {
@@ -101,6 +105,8 @@ const trackOrder = async (req, res) => {
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,
       orderStatus: order.orderStatus,
+      courier: order.courier || null,
+      trackingNumber: order.trackingNumber || null,
       createdAt: order.createdAt,
     });
   } catch (error) {
@@ -116,7 +122,7 @@ const getSalesAnalytics = async (req, res) => {
     const monthlyMap = {};
     orders.forEach((o) => {
       const d = new Date(o.createdAt);
-      const key = `\${d.getFullYear()}-\${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       monthlyMap[key] = (monthlyMap[key] || 0) + o.totalAmount;
     });
     const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -126,7 +132,7 @@ const getSalesAnalytics = async (req, res) => {
       .map((key) => {
         const [year, month] = key.split("-");
         return {
-          month: `\${monthNames[parseInt(month, 10) - 1]} \${year}`,
+          month: `${monthNames[parseInt(month, 10) - 1]} ${year}`,
           revenue: Math.round(monthlyMap[key]),
         };
       });
@@ -180,4 +186,3 @@ module.exports = {
   getSalesAnalytics,
   trackOrder,
 };
-

@@ -43,6 +43,15 @@ const orderSchema = new mongoose.Schema(
       enum: ["pending", "shipped", "delivered"],
       default: "pending",
     },
+    courier: {
+      type: String,
+      enum: ["TCS", "Leopards"],
+      default: null,
+    },
+    trackingNumber: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true },
 );

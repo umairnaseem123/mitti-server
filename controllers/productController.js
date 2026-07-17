@@ -1,4 +1,5 @@
-﻿const Product = require("../models/Product");
+const Product = require("../models/Product");
+const WishlistEntry = require("../models/WishlistEntry");
 const sendNewProductEmail = require("../utils/sendProductEmail");
 
 // GET all products (supports search + category filter)
@@ -183,20 +184,51 @@ const addFaq = async (req, res) => {
   }
 };
 
+// TOGGLE wishlist count (public) - now also saves name/phone when adding,
+// so admin can see who wishlisted a product and follow up.
 const toggleWishlistCount = async (req, res) => {
   try {
-    const { action } = req.body; // "add" or "remove"
+    const { action, name, phone } = req.body; // "add" or "remove"
     const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
+
     if (action === "remove") {
       product.wishlistCount = Math.max(0, (product.wishlistCount || 0) - 1);
+      // Best-effort: remove the matching entry for this phone, if we have one
+      if (phone) {
+        await WishlistEntry.findOneAndDelete({
+          product: product._id,
+          phone,
+        });
+      }
     } else {
       product.wishlistCount = (product.wishlistCount || 0) + 1;
+      // Save who wishlisted it, if name/phone were provided
+      if (name && phone) {
+        await WishlistEntry.create({
+          product: product._id,
+          name,
+          phone,
+        });
+      }
     }
+
     await product.save();
     res.status(200).json({ wishlistCount: product.wishlistCount });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// GET all wishlist entries (name + phone) for a specific product (admin only)
+const getWishlistEntries = async (req, res) => {
+  try {
+    const entries = await WishlistEntry.find({
+      product: req.params.id,
+    }).sort({ createdAt: -1 });
+    res.status(200).json(entries);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -212,5 +244,5 @@ module.exports = {
   addReview,
   addFaq,
   toggleWishlistCount,
+  getWishlistEntries,
 };
-
