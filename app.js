@@ -14,6 +14,7 @@ const uploadRoutes = require("./routes/uploadRoutes");
 const subscriberRoutes = require("./routes/subscriberRoutes");
 const couponRoutes = require("./routes/couponRoutes");
 const stockNotificationRoutes = require("./routes/stockNotificationRoutes");
+const wishlistRoutes = require("./routes/wishlistRoutes");
 
 // const { handleStripeWebhook } = require("./controllers/paymentController");
 const app = express();
@@ -40,6 +41,7 @@ app.use("/api/subscribers", subscriberRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/stock-notifications", stockNotificationRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 app.get("/", (req, res) => {
   res.send("Mitti API is running...");
 });

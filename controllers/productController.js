@@ -77,6 +77,10 @@ const createProduct = async (req, res) => {
       category,
       stock,
       faqs,
+      colors,
+      makerName,
+      madeDate,
+      batchNumber,
     } = req.body;
     const product = new Product({
       name,
@@ -93,6 +97,10 @@ const createProduct = async (req, res) => {
       category,
       stock,
       faqs: faqs || [],
+      colors: colors || [],
+      makerName: makerName || "",
+      madeDate: madeDate || null,
+      batchNumber: batchNumber || "",
     });
     const savedProduct = await product.save();
 

@@ -44,6 +44,14 @@ const productSchema = new mongoose.Schema(
       enum: ["Concrete", "Candles"],
       required: true,
     },
+    // Plain color names (e.g. "Grey", "Pink"). The frontend already has
+    // its own name -> hex swatch mapping (COLOR_SWATCHES in
+    // ProductDetailClient.js), so this just needs to be simple strings
+    // that match names in that list.
+    colors: {
+      type: [String],
+      default: [],
+    },
     stock: {
       type: Number,
       required: true,
